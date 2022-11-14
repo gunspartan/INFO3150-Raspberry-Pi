@@ -2,7 +2,7 @@ from gpiozero import LED, Button
 import time
 from signal import pause
 
-class gpioController:
+class GPIOController:
     def __init__(self):
         self.COUNT = 5
         self.DELAY = 0.5
@@ -41,7 +41,7 @@ class gpioController:
        else:
             print("button not pressed")
 # test
-test = gpioController()
+test = GPIOController()
 #print("allow entry")
 #test.allowEntryLED()
 #print("deny entry")
