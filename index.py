@@ -18,7 +18,7 @@ people = []
 database = DBController()
 users = database.getAllUsers()
 for row in users:
-    person = Person(row[0], row[1], row[2])
+    person = Person(row[1], row[2], row[3])
     people.append(person)
 
 # Create arrays of known face encodings and their names
