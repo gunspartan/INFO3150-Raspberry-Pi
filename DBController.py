@@ -6,7 +6,7 @@ class DBController:
 		self.db = sqlite3.connect(self.DB_NAME)
 		self.cursor = self.db.cursor()
 		self.cursor.execute('''CREATE TABLE IF NOT EXISTS users
-			(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, image TEXT, blacklisted INTEGER)''')
+			(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, image TEXT NOT NULL, blacklisted INTEGER NOT NULL)''')
 		self.db.commit()
 
 	def addUser(self, name, image, blacklisted = 0):

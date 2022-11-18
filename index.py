@@ -2,6 +2,7 @@
 import face_recognition
 import cv2
 import numpy as np
+from datetime import date
 
 from DBController import DBController
 from Person import Person
@@ -111,22 +112,25 @@ while True:
                     break
         else:
             print("Unrecognized Face Detected")
+            cv2.rectangle(frame, 0, 0, (0, 0, 255), 0)
+            cv2.putText(frame, "", 0, font, 1.0, (255, 255, 255), 1)
+            image = cv2.imwrite("img/" + date.today() + ".jpg", frame)
             if gpio.allowBtn.is_pressed:
                 print("Allowing Entry")
                 gpio.allowEntryLED()
+                print("Enter new user's name:")
                 name = input()
-                image = cv2.imwrite("img/" + name + ".jpg", frame)
                 newUser = Person(name, image, False)
                 newUser.addToDB()
-                break
             if gpio.denyBtn.is_pressed:
                 print("Denying Entry")
                 gpio.denyEntryLED()
                 # Email admin that an unknown face was detected
                 email = EmailController()
                 email.sendEmail("Unknown Face Detected", "An unknown face was detected at the door")
-                email.close()
-                break
+        
+        database.close()
+        break
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
         database.close()
