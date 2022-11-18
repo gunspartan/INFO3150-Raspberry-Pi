@@ -40,12 +40,3 @@ class GPIOController:
             print("button pressed")
        else:
             print("button not pressed")
-# test
-test = GPIOController()
-#print("allow entry")
-#test.allowEntryLED()
-#print("deny entry")
-#test.denyEntryLED()
-
-test.approveManual()
-test.denyManual()

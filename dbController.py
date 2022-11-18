@@ -31,14 +31,3 @@ class DBController:
 
 	def close(self):
 		self.db.close()
-
-# test
-test = DBController()
-test.addUser("test", "test.png", False)
-test.addUser("test2", "test2.png", False)
-test.addUser("test3", "test3.png", False)
-test.addUser("test4", "test4.png", True)
-test.addUser("test5", "test5.png", True)
-test.addUser("test6", "test6.png", False)
-for row in test.getAllUsers():
-	print(row)
