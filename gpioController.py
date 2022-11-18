@@ -25,7 +25,7 @@ class GPIOController:
             self.red.off()
             time.sleep(self.DELAY)
 
-    def approveManual(self):
+    def allowManual(self):
        print("waiting for manual approval")
        if self.allowBtn.wait_for_press(5):
             self.allowEntryLED()

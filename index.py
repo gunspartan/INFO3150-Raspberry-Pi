@@ -8,6 +8,8 @@ from Person import Person
 from EmailController import EmailController
 from GPIOController import GPIOController
 
+
+gpio = GPIOController()
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
@@ -16,27 +18,10 @@ people = []
 database = DBController()
 users = database.getAllUsers()
 for row in users:
-    person = Person(row[0], row[1], row[2], row[3])
+    person = Person(row[0], row[1], row[2])
     people.append(person)
 
-# # Load a sample picture and learn how to recognize it.
-# obama_image = face_recognition.load_image_file("img/obama.jpg")
-# obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
-
-# # Load a second sample picture and learn how to recognize it.
-# biden_image = face_recognition.load_image_file("img/biden.jpg")
-# biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
-
-# known_face_encodings = [
-#     obama_face_encoding,
-#     biden_face_encoding
-# ]
-# known_face_names = [
-#     "Barack Obama",
-#     "Joe Biden"
-# ]
-
-# # Create arrays of known face encodings and their names
+# Create arrays of known face encodings and their names
 known_face_encodings = []
 known_face_names = []
 
@@ -84,6 +69,36 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
+                print(name)
+                # Check if person is blacklisted
+                for person in people:
+                    if person.getName() == name:
+                        if person.getBlacklisted():
+                            print("Blacklisted")
+                            gpio.denyEntryLED()
+                            break
+                        else:
+                            print("Not Blacklisted")
+                            gpio.allowEntryLED()
+                            break
+            else:
+                print("Unrecognized Face Detected")
+                if gpio.allowBtn.is_pressed:
+                    print("Allowing Entry")
+                    gpio.allowEntryLED()
+                    name = input()
+                    image = cv2.imwrite("img/" + name + ".jpg", frame)
+                    newUser = Person(name, image, False)
+                    newUser.addToDB()
+                    break
+                if gpio.denyBtn.is_pressed:
+                    print("Denying Entry")
+                    gpio.denyEntryLED()
+                    # Email admin that an unknown face was detected
+                    email = EmailController()
+                    email.sendEmail("Unknown Face Detected", "An unknown face was detected at the door")
+                    email.close()
+                    break
 
             face_names.append(name)
 
@@ -111,6 +126,7 @@ while True:
 
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        database.close()
         break
 
 # Release handle to the webcam
