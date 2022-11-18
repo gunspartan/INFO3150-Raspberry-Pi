@@ -133,7 +133,7 @@ while True:
                 gpio.denyEntryLED()
                 # Email admin that an unknown face was detected
                 email = EmailController()
-                email.sendEmail("Unknown Face Detected", "An unknown face was detected at the door")
+                email.sendEmail(imgName)
         
         database.close()
         break
