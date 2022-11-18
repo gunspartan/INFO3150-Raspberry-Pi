@@ -96,10 +96,11 @@ while True:
 
     # Display the resulting image
     cv2.imshow('Video', frame)
-    if known_face:
-        # Check if person is blacklisted
-        for person in people:
-            if person.getName() == name:
+    
+
+    if cv2.waitKey(1) & 0xFF == ord('p'):
+        if known_face:
+            if name in known_face_names:
                 if person.getBlacklisted():
                     print("Blacklisted")
                     gpio.denyEntryLED()
@@ -108,26 +109,24 @@ while True:
                     print("Not Blacklisted")
                     gpio.allowEntryLED()
                     break
-    else:
-        print("Unrecognized Face Detected")
-        if gpio.allowBtn.is_pressed:
-            print("Allowing Entry")
-            gpio.allowEntryLED()
-            name = input()
-            image = cv2.imwrite("img/" + name + ".jpg", frame)
-            newUser = Person(name, image, False)
-            newUser.addToDB()
-            break
-        if gpio.denyBtn.is_pressed:
-            print("Denying Entry")
-            gpio.denyEntryLED()
-            # Email admin that an unknown face was detected
-            email = EmailController()
-            email.sendEmail("Unknown Face Detected", "An unknown face was detected at the door")
-            email.close()
-            break
-
-
+        else:
+            print("Unrecognized Face Detected")
+            if gpio.allowBtn.is_pressed:
+                print("Allowing Entry")
+                gpio.allowEntryLED()
+                name = input()
+                image = cv2.imwrite("img/" + name + ".jpg", frame)
+                newUser = Person(name, image, False)
+                newUser.addToDB()
+                break
+            if gpio.denyBtn.is_pressed:
+                print("Denying Entry")
+                gpio.denyEntryLED()
+                # Email admin that an unknown face was detected
+                email = EmailController()
+                email.sendEmail("Unknown Face Detected", "An unknown face was detected at the door")
+                email.close()
+                break
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
         database.close()
