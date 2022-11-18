@@ -2,7 +2,7 @@
 import face_recognition
 import cv2
 import numpy as np
-from datetime import date
+import datetime
 
 from DBController import DBController
 from Person import Person
@@ -101,26 +101,28 @@ while True:
 
     if cv2.waitKey(1) & 0xFF == ord('p'):
         if known_face:
-            if name in known_face_names:
-                if person.getBlacklisted():
-                    print("Blacklisted")
-                    gpio.denyEntryLED()
-                    break
-                else:
-                    print("Not Blacklisted")
-                    gpio.allowEntryLED()
-                    break
+            if person.getBlacklisted():
+                print("Blacklisted")
+                gpio.denyEntryLED()
+                break
+            else:
+                print("Not Blacklisted")
+                gpio.allowEntryLED()
+                break
         else:
             print("Unrecognized Face Detected")
-            cv2.rectangle(frame, 0, 0, (0, 0, 255), 0)
-            cv2.putText(frame, "", 0, font, 1.0, (255, 255, 255), 1)
-            image = cv2.imwrite("img/" + date.today() + ".jpg", frame)
+            #cv2.rectangle(frame, (0, 0), (0, 0), (0, 0, 255), 0)
+            #cv2.putText(frame, "", (0, 0), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 1)
+            now = datetime.datetime.now()
+            nowString = now.strftime("%Y%m%d%H%M%S")
+            imgName = "img/" + nowString + ".jpg"
+            image = cv2.imwrite(imgName, frame)
             if gpio.allowBtn.is_pressed:
                 print("Allowing Entry")
                 gpio.allowEntryLED()
                 print("Enter new user's name:")
                 name = input()
-                newUser = Person(name, image, False)
+                newUser = Person(name, imgName, False)
                 newUser.addToDB()
             if gpio.denyBtn.is_pressed:
                 print("Denying Entry")

@@ -1,4 +1,3 @@
-makedb.py
-test.py
+img/
 __pycache__/
 facial-recognition.db
