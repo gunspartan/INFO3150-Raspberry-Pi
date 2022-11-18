@@ -10,6 +10,12 @@ from EmailController import EmailController
 from GPIOController import GPIOController
 
 
+def getPersonByName(name, people):
+    for person in people:
+        if person.getName() == name:
+            return person
+    return None
+
 gpio = GPIOController()
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
@@ -37,7 +43,7 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
-known_face = False
+known_person = None
 name = "Unknown"
 
 while True:
@@ -72,7 +78,7 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
-                known_face = True
+                known_person = getPersonByName(name, people)
 
             face_names.append(name)
 
@@ -100,8 +106,8 @@ while True:
     
 
     if cv2.waitKey(1) & 0xFF == ord('p'):
-        if known_face:
-            if person.getBlacklisted():
+        if known_person:
+            if known_person.getBlacklisted():
                 print("Blacklisted")
                 gpio.denyEntryLED()
                 break
@@ -111,8 +117,6 @@ while True:
                 break
         else:
             print("Unrecognized Face Detected")
-            #cv2.rectangle(frame, (0, 0), (0, 0), (0, 0, 255), 0)
-            #cv2.putText(frame, "", (0, 0), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 1)
             now = datetime.datetime.now()
             nowString = now.strftime("%Y%m%d%H%M%S")
             imgName = "img/" + nowString + ".jpg"
