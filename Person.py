@@ -5,7 +5,7 @@ class Person:
     self.userId = userId
     self.name = name
     self.image = image
-    self.blacklisted = blacklisted
+    self.blacklisted = bool(blacklisted)
 
   def getName(self):
     return self.name
