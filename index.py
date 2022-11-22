@@ -9,7 +9,6 @@ from Person import Person
 from EmailController import EmailController
 from GPIOController import GPIOController
 
-
 def getPersonByName(name, people):
     for person in people:
         if person.getName() == name:
@@ -17,6 +16,9 @@ def getPersonByName(name, people):
     return None
 
 gpio = GPIOController()
+# turn off leds
+gpio.greenOff()
+gpio.redOff()
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
@@ -109,10 +111,12 @@ while True:
         if known_person:
             if known_person.getBlacklisted():
                 print("Blacklisted")
+                gpio.playDeny()
                 gpio.denyEntryLED()
                 break
             else:
                 print("Not Blacklisted")
+                gpio.playApprove()
                 gpio.allowEntryLED()
                 break
         else:
@@ -123,6 +127,7 @@ while True:
             image = cv2.imwrite(imgName, frame)
             if gpio.allowBtn.is_pressed:
                 print("Allowing Entry")
+                gpio.playApprove()
                 gpio.allowEntryLED()
                 print("Enter new user's name:")
                 name = input()
@@ -130,6 +135,7 @@ while True:
                 newUser.addToDB()
             if gpio.denyBtn.is_pressed:
                 print("Denying Entry")
+                gpio.playDeny()
                 gpio.denyEntryLED()
                 # Email admin that an unknown face was detected
                 email = EmailController()
