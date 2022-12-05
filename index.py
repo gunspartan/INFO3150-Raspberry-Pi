@@ -2,12 +2,23 @@
 import face_recognition
 import cv2
 import numpy as np
+import datetime
 
 from DBController import DBController
 from Person import Person
 from EmailController import EmailController
 from GPIOController import GPIOController
 
+def getPersonByName(name, people):
+    for person in people:
+        if person.getName() == name:
+            return person
+    return None
+
+gpio = GPIOController()
+# turn off leds
+gpio.greenOff()
+gpio.redOff()
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
@@ -16,27 +27,10 @@ people = []
 database = DBController()
 users = database.getAllUsers()
 for row in users:
-    person = Person(row[0], row[1], row[2], row[3])
+    person = Person(row[1], row[2], row[3])
     people.append(person)
 
-# # Load a sample picture and learn how to recognize it.
-# obama_image = face_recognition.load_image_file("img/obama.jpg")
-# obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
-
-# # Load a second sample picture and learn how to recognize it.
-# biden_image = face_recognition.load_image_file("img/biden.jpg")
-# biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
-
-# known_face_encodings = [
-#     obama_face_encoding,
-#     biden_face_encoding
-# ]
-# known_face_names = [
-#     "Barack Obama",
-#     "Joe Biden"
-# ]
-
-# # Create arrays of known face encodings and their names
+# Create arrays of known face encodings and their names
 known_face_encodings = []
 known_face_names = []
 
@@ -51,6 +45,8 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
+known_person = None
+name = "Unknown"
 
 while True:
     # Grab a single frame of video
@@ -72,7 +68,7 @@ while True:
         for face_encoding in face_encodings:
             # See if the face is a match for the known face(s)
             matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-            name = "Unknown"
+            
 
             # # If a match was found in known_face_encodings, just use the first one.
             # if True in matches:
@@ -84,6 +80,7 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
+                known_person = getPersonByName(name, people)
 
             face_names.append(name)
 
@@ -108,9 +105,47 @@ while True:
 
     # Display the resulting image
     cv2.imshow('Video', frame)
+    
 
+    if cv2.waitKey(1) & 0xFF == ord('p'):
+        if known_person:
+            if known_person.getBlacklisted():
+                print("Blacklisted")
+                gpio.playDeny()
+                gpio.denyEntryLED()
+                break
+            else:
+                print("Not Blacklisted")
+                gpio.playApprove()
+                gpio.allowEntryLED()
+                break
+        else:
+            print("Unrecognized Face Detected")
+            now = datetime.datetime.now()
+            nowString = now.strftime("%Y%m%d%H%M%S")
+            imgName = "img/" + nowString + ".jpg"
+            image = cv2.imwrite(imgName, frame)
+            if gpio.allowBtn.is_pressed:
+                print("Allowing Entry")
+                gpio.playApprove()
+                gpio.allowEntryLED()
+                print("Enter new user's name:")
+                name = input()
+                newUser = Person(name, imgName, False)
+                newUser.addToDB()
+            if gpio.denyBtn.is_pressed:
+                print("Denying Entry")
+                gpio.playDeny()
+                gpio.denyEntryLED()
+                # Email admin that an unknown face was detected
+                email = EmailController()
+                email.sendEmail(imgName)
+        
+        database.close()
+        break
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        database.close()
         break
 
 # Release handle to the webcam

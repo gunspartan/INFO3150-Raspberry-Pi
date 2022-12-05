@@ -1,15 +1,23 @@
 from gpiozero import LED, Button
 import time
 from signal import pause
+import os
 
 class GPIOController:
     def __init__(self):
         self.COUNT = 5
         self.DELAY = 0.5
-        self.red = LED(6)
-        self.green = LED(19)
-        self.denyBtn = Button(22)
-        self.allowBtn = Button(17)
+        self.red = LED(19)
+        self.green = LED(5)
+        self.denyBtn = Button(17)
+        self.allowBtn = Button(22)
+        self.successSound = 'success.mp3'
+        self.denySound = 'deny.mp3'
+
+    def greenOff(self):
+        self.green.off()
+    def redOff(self):
+        self.red.off()
 
     def allowEntryLED(self):
         for i in range(self.COUNT):
@@ -25,7 +33,7 @@ class GPIOController:
             self.red.off()
             time.sleep(self.DELAY)
 
-    def approveManual(self):
+    def allowManual(self):
        print("waiting for manual approval")
        if self.allowBtn.wait_for_press(5):
             self.allowEntryLED()
@@ -40,3 +48,12 @@ class GPIOController:
             print("button pressed")
        else:
             print("button not pressed")
+        
+    def playSound(self, file):
+        os.system("mpg321 " + file)
+        
+    def playApprove(self):
+        self.playSound(self.successSound)
+        
+    def playDeny(self):
+        self.playSound(self.denySound)

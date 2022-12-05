@@ -1,8 +1,7 @@
 from DBController import DBController
 
 class Person:
-  def __init__(self, userId, name, image, blacklisted):
-    self.userId = userId
+  def __init__(self, name, image, blacklisted):
     self.name = name
     self.image = image
     self.blacklisted = bool(blacklisted)
